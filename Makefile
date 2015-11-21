@@ -14,17 +14,19 @@ PROTO_PATH=-L/usr/local/lib
 
 DEBUGFLAG=-DDEBUG -g3
 RELEASEFLAG= -O3 -march=native -DARMA_NO_DEBUG
-CXXFLAGS=  -std=c++0x -I$(HOME)Copy/workspace/munkres-cpp/src -D__LINUX  
+CXXFLAGS=  -std=c++0x -I$(HOME)Copy/workspace/munkres-cpp/src $(BOOST_INCLUDE) -D__LINUX  
 #CXXFLAGS += $(DEBUGFLAG)
 #CXXFLAGS += $(RELEASEFLAG)
 LINKOPTFLAGS= -O3 -flto=4 -fwhole-program
 LDFLAG=
 
-OBJ=HungarianAlg.o controller.o model.o simulator.o Driver.o
-
+OBJ=HungarianAlg.o controller.o model.o simulator.o Driver.o CellList.o
+OBJ2=cellList_test.o CellList.o
+all:test.exe test_cell.exe
 test.exe: $(OBJ)
 	$(CXX) -o $@ $^ $(LDFLAG) 
-	
+test_cell.exe:$(OBJ2)
+	$(CXX) -o $@ $^ $(LDFLAG) 
 
 %.o:%.cpp
 	$(CXX) -c $(CXXFLAGS) $(DEBUGFLAG) $^
