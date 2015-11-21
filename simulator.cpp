@@ -9,16 +9,19 @@ Simulator::Simulator(std::shared_ptr<Model> model0,std::shared_ptr<Controller> c
 }
 
 void Simulator::run(){
-    
+    double totalCost;   
     model->createInitialState();
-    controller->calAssignment(model->getCurrState());
-    controller->calControl(model->getCurrState());
+    totalCost = controller->calAssignment(model->getCurrState(),model->getDimP());
+    controller->calControl(model->getCurrState(),model->getDimP());
     int iter;
+    std::cout << totalCost << std::endl;
     for(int s=0; s < nstep; s++){
         if ((s+1)%assignmentFrequency == 0){
-            controller->calAssignment(model->getCurrState());
+            totalCost = controller->calAssignment(model->getCurrState(),model->getDimP());
+            std::cout << totalCost << std::endl;
         }
-        controller->calControl(model->getCurrState());        
+        controller->calControl(model->getCurrState(),model->getDimP());        
         model->run(controlFrequency);
     }
 }
+

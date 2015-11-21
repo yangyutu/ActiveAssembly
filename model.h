@@ -6,38 +6,43 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+
 class Model {
 public:
 
-    struct particle2d {
-        double r[2],F[2];
+    struct particle {
+        double r[3],F[3],ori_vec[3][3];
         double phi;
+        double theta;
         double u;
         int targetIdx;
         double cost;
     };
-    typedef std::shared_ptr<particle2d> particle2d_ptr;
-    typedef std::vector<particle2d_ptr> state;
-
+    typedef std::shared_ptr<particle> particle_ptr;
+    typedef std::vector<particle_ptr> state;
+   
     Model(){}
-    Model(int np, double radius0, std::string filetag0);
+    Model(int np, int dim0,double radius0, std::string filetag0, std::string targetFile);
     ~Model() {
     }
     void run();
     void run(int steps);
     void createInitialState();
     state getCurrState(){return particles;}
+    int getDimP(){return dimP;}
+    std::vector<Model::particle> getTargets(){return targets;}
     double dt(){return dt_;}
     int np(){return numP;}
 private:
     void calForces();
-    static const int dimP=2;
+    int dimP;
     static const double kb, T, vis;
     int numP;
     double radius;
     double LJ,rm;
+    double eps[3][3][3];
     std::vector<double> velocity={0.0,2.0e-6,5.0e-6};
-    std::vector<particle2d_ptr> particles;
+    std::vector<particle_ptr> particles;
     std::vector<int> control;
     double dt_, cutoff, mobility, diffusivity_r, diffusivity_t;
     std::default_random_engine rand_generator;
@@ -46,9 +51,13 @@ private:
     int timeCounter,fileCounter;
     std::ofstream trajOs, opOs;
     std::string filetag;
+    std::vector<Model::particle> targets;
     void outputTrajectory(std::ostream& os);
     void outputOrderParameter(std::ostream& os);
     void readxyz(const std::string filename);
+    void updateBodyFrameVec();
+    void readTarget(std::string filename);
+    void getPermutator();
 };
 
 
