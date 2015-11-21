@@ -16,7 +16,7 @@ int main(){
     }
     
     
-    CellList cell(1,3,20,20,1,20,1,20,1);
+    CellList cell(1,2,20,20,1,20,1,20,1);
     cell.buildList(s);
     cell.printParticleList();
 //    cell.printCellList();

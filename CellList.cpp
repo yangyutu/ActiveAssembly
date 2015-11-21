@@ -83,27 +83,36 @@ void CellList::setup() {
 
     int count = 0;
     // now build the cellNeighborIdxList
-    for (int i = 1; i < nbin_x-1; i++) {
-        for (int j = 1; j < nbin_y-1; j++) {
-            for (int k = 1; k < nbin_z-1; k++) {                
+    for (int i = 1; i < nbin_x - 1; i++) {
+        for (int j = 1; j < nbin_y - 1; j++) {
+            if (dim == 2) {
                 cellNeighborIdxList.push_back(std::list<Idx_3d>());
                 for (int ii = -1; ii < 2; ii++) {
                     for (int jj = -1; jj < 2; jj++) {
-                        for (int kk = -1; kk < 2; kk++) {
-                            int idx_x = i + ii;
-                            int idx_y = j + jj;
-                            int idx_z = k + kk;
-                            if (dim==2){
-                                idx_z = 0;
+                        int idx_x = i + ii;
+                        int idx_y = j + jj;
+                        int idx_z = 0;
+                        Idx_3d idx(idx_z, idx_y, idx_x);
+                        (*oneDIdx)[0][j][i] = count;
+                        cellNeighborIdxList[count].push_back(idx);
+                        
+                    }
+                }
+                count++;
+            } else {
+
+                for (int k = 1; k < nbin_z - 1; k++) {
+                    cellNeighborIdxList.push_back(std::list<Idx_3d>());
+                    for (int ii = -1; ii < 2; ii++) {
+                        for (int jj = -1; jj < 2; jj++) {
+                            for (int kk = -1; kk < 2; kk++) {
+                                int idx_x = i + ii;
+                                int idx_y = j + jj;
+                                int idx_z = k + kk;
                                 Idx_3d idx(idx_z, idx_y, idx_x);
                                 (*oneDIdx)[k][j][i] = count;
                                 cellNeighborIdxList[count].push_back(idx);
-                                continue;
-                            } else{
-                                Idx_3d idx(idx_z, idx_y, idx_x);
-                                (*oneDIdx)[k][j][i] = count;
-                                cellNeighborIdxList[count].push_back(idx);
-                            
+
                             }
                         }
                     }
@@ -112,6 +121,7 @@ void CellList::setup() {
             }
         }
     }
+
 }
 
 void CellList::printCellList() const{
