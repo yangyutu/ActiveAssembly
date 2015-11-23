@@ -12,7 +12,7 @@ public:
 private:
     std::shared_ptr<Model> model;
     std::shared_ptr<Controller> controller;
-    int nstep;
+    int nstep_equilibrate, nstep_control;
     int assignmentFrequency;
     int controlFrequency;
 };

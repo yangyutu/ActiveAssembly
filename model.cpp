@@ -1,11 +1,12 @@
 #include "model.h"
+#include "CellList.h"
 
 double const Model::T = 293.0;
 double const Model::kb = 1.38e-23;
 double const Model::vis = 1e-3;
 
-Model::Model(int np, int dim0, double radius0, std::string filetag0, std::string targetFile):numP(np), 
-        dimP(dim0), radius(radius0), filetag(filetag0){
+Model::Model(int np, int dim0, double radius0, std::string filetag0,std::string ini, std::string targetFile, cellList_ptr cell):numP(np), 
+        dimP(dim0), radius(radius0), filetag(filetag0), cellList(cell), iniFile(ini){
     rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
 
     for(int i = 0; i < numP; i++){
@@ -13,6 +14,7 @@ Model::Model(int np, int dim0, double radius0, std::string filetag0, std::string
     }
     dt_ = 0.001;
     diffusivity_t = 2.145e-13;
+//    diffusivity_t = qe-18;
     diffusivity_r = 0.2145;
     mobility = diffusivity_t/kb/T;
     trajOutputInterval = 1000;
@@ -27,6 +29,11 @@ Model::Model(int np, int dim0, double radius0, std::string filetag0, std::string
     
     this->getPermutator();
     
+    cellListFlag = false;
+    if (cell!=nullptr){
+        cellListFlag = true;
+    }
+    
 }
 
 void Model::run() {
@@ -34,7 +41,12 @@ void Model::run() {
         this->outputTrajectory(this->trajOs);
 //        this->outputOrderParameter(this->opOs);
     }
-    
+    if (cellListFlag){
+            double builtCount = cellList->buildList(particles);
+            if (builtCount!=numP){
+                std::cout << "build imcomplete" << std::endl;
+            }
+    }
     calForces();
 //    particles[0]->phi = 0.0;
 //    particles[1]->phi = -M_PI;
@@ -69,7 +81,8 @@ void Model::run() {
                     particles[i]->ori_vec[2][j]*thetatemp;
             }
         }
-        this->updateBodyFrameVec();    
+        this->updateBodyFrameVec();  
+        
     }
     this->timeCounter++;
     
@@ -106,43 +119,127 @@ void Model::readTarget(std::string filename){
     }  
 }
 
-void Model::calForces(){
+void Model::calForcesHelper(int i, int j, double F[3]) {
     double r[dimP], dist;
-    for (int i = 0; i < numP; i++){
-        for (int k = 0; k < dimP; k++){
-        particles[i]->F[k] = 0.0;
+
+    dist = 0.0;
+    for (int k = 0; k < dimP; k++) {
+        F[k] = 0.0;
+        r[k] = (particles[j]->r[k] - particles[i]->r[k]) / radius;
+        dist += pow(r[k], 2.0);
+    }
+    dist = sqrt(dist);
+    if (dist < 2.0) {
+        std::cout << "overlap " << i << "\t" << j << "\t"<< this->timeCounter <<std::endl;
+        dist = 2.001;
+    }
+    if (dist < cutoff) {
+        double Fpp = LJ * (-12.0 * pow((rm / dist), 12) / dist + 12.0 * pow((rm / dist), 7) / dist);
+        Fpp += -9e-13 * exp(-33.3 * (dist - 2.0));
+        for (int k = 0; k < dimP; k++) {
+            F[k] = Fpp * r[k] / dist;
+
         }
+    }
+
+
+}
+
+void Model::calForces() {
+    double r[dimP], dist, F[3];
+    for (int i = 0; i < numP; i++) {
+        for (int k = 0; k < dimP; k++) {
+            particles[i]->F[k] = 0.0;
+        }
+    }
+
+    if(!cellListFlag){
+    for (int i = 0; i < numP - 1; i++) {
+        for (int j = i + 1; j < numP; j++) {
+            calForcesHelper(i, j, F);
+            for (int k = 0; k < dimP; k++) {
+                particles[i]->F[k] += F[k];
+                particles[j]->F[k] += -F[k];
+            }
+        }
+    }
+    } else{
+        
+        for (int i = 0; i < numP; i++) {
+            std::vector<int> mapTable;
+            mapTable.assign(numP,0);
+            std::vector<int> nblist = 
+            cellList->getNeighbors(particles[i]->r[0],particles[i]->r[1],particles[i]->r[2]);
+            for (int j = 0; j < nblist.size(); j++){
+                mapTable[nblist[j]] = 1;
+                if (i!=nblist[j]){
+                    calForcesHelper(i, nblist[j], F);
+                    for (int k = 0; k < dimP; k++) {
+                        particles[i]->F[k] += F[k];
+                    }
+                }
+            }
+/*           
+            for (int j = 0; j < numP; j++){
+                if (mapTable[j]!=1){
+                        double r[3], dist;
+                        dist = 0.0;
+                        for (int k = 0; k < dimP; k++) {
+
+                            r[k] = (particles[j]->r[k] - particles[i]->r[k]) / radius;
+                            dist += pow(r[k], 2.0);
+                        }
+                        dist = sqrt(dist);
+                        if (dist < cutoff) {
+                            std::cout << "particle: " << j <<"uncovered! " << dist <<std::endl;
+                            int idx1[3],idx2[3];
+                            cellList->getParticleIdx(particles[i]->r[0],particles[i]->r[1],particles[i]->r[2],idx1);
+                            cellList->getParticleIdx(particles[j]->r[0],particles[j]->r[1],particles[j]->r[2],idx2);
+                            
+                            std::cout << "particle i idx: " << idx1[0] << "\t" << idx1[1] << "\t"<<idx1[2]<<std::endl;
+                            std::cout << "particle j idx: " << idx2[0] << "\t" << idx2[1] << "\t" <<idx2[2]<<std::endl;
+                            cellList->printCellContent(idx1);
+                            cellList->printCellContent(idx2);
+                            cellList->buildList(particles);
+                            cellList->printCellContent(idx1);
+                            cellList->printCellContent(idx2);
+                            
+                        }   
+                    
+                }
+            }         
+            
+            
+            double F2[3], diff[3];
+            diff[0]=0.0;
+            diff[1]=0.0;
+            diff[2]=0.0;
+            for (int j = 0; j < numP; j++){
+                if (i!=j){
+                    calForcesHelper(i, j, F2);
+                    for (int k = 0; k < dimP; k++) {
+                        diff[k] += F2[k];
+                    }
+                    
+                }
+            }              
+            
+            std::cout << "particle: " << i << std::endl; 
+                    std::cout << diff[0] - particles[i]->F[0] << std::endl;                    
+                    std::cout << diff[1] - particles[i]->F[1] << std::endl;
+                    std::cout << diff[2] - particles[i]->F[2] << std::endl;
+            }
+*/             
+        }    
     }
     
-    for(int i = 0; i < numP-1; i++){
-        for(int j = i+1; j < numP; j++){
-            dist = 0.0;
-            for(int k = 0; k < dimP; k++){
-                r[k] = (particles[j]->r[k] - particles[i]->r[k])/radius;
-                dist += pow(r[k],2.0);
-            }
-            dist = sqrt(dist);
-            if(dist < 2.0){
-                std::cout << "overlap " << i << "\t" << j << std::endl;
-                dist = 2.0;
-            }           
-            if (dist < cutoff) {
-                double Fpp = LJ*(-12.0*pow((rm/dist),12)/dist+12.0*pow((rm/dist),7)/dist);
-                Fpp += -9e-13*exp(-33.3*(dist-2.0));
-            for(int k = 0; k < dimP; k++){
-                particles[i]->F[k] += Fpp * r[k]/dist;
-                particles[j]->F[k] += -Fpp * r[k]/dist;
-            }   
-            }
-
-        
-        }
-    }
 }
+    
+
 
 void Model::createInitialState(){
 
-    this->readxyz("config3d.txt");
+    this->readxyz(iniFile);
     std::stringstream ss;
     std::cout << "model initialize at round " << fileCounter << std::endl;
     ss << this->fileCounter++;
@@ -195,6 +292,10 @@ void Model::readxyz(const std::string filename) {
         particles[i]->ori_vec[0][2] = cos(particles[i]->theta);
     }
     this->updateBodyFrameVec();
+    
+    if (cellListFlag){
+        cellList->buildList(particles);
+    }
     
     is.close();
 }

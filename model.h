@@ -6,7 +6,10 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+//#include "CellList.h"
 
+class CellList; 
+typedef std::shared_ptr<CellList> cellList_ptr;
 class Model {
 public:
 
@@ -22,7 +25,7 @@ public:
     typedef std::vector<particle_ptr> state;
    
     Model(){}
-    Model(int np, int dim0,double radius0, std::string filetag0, std::string targetFile);
+    Model(int np, int dim0,double radius0, std::string filetag0, std::string ini, std::string targetFile, cellList_ptr cell);
     ~Model() {
     }
     void run();
@@ -35,6 +38,9 @@ public:
     int np(){return numP;}
 private:
     void calForces();
+    void calForcesHelper(int i, int j, double F[3]);
+    bool cellListFlag;
+    std::shared_ptr<CellList> cellList;
     int dimP;
     static const double kb, T, vis;
     int numP;
@@ -44,6 +50,7 @@ private:
     std::vector<double> velocity={0.0,2.0e-6,5.0e-6};
     std::vector<particle_ptr> particles;
     std::vector<int> control;
+    std::string iniFile;
     double dt_, cutoff, mobility, diffusivity_r, diffusivity_t;
     std::default_random_engine rand_generator;
     std::shared_ptr<std::normal_distribution<double>> rand_normal;

@@ -3,7 +3,7 @@
 
 void test(double x, double y, double z);
 int main(){
-    int N = 10;
+    int N = 2;
     Model::state s;
     for (int i = 0; i < N; i++){
         s.push_back(Model::particle_ptr(new Model::particle));
@@ -16,10 +16,10 @@ int main(){
     }
     
     
-    CellList cell(1,2,20,20,1,20,1,20,1);
+    CellList cell(1,2,10,4,4,4);
     cell.buildList(s);
-    cell.printParticleList();
-//    cell.printCellList();
+//    cell.printParticleList();
+    cell.printCellList();
     
     for (int i = 0; i < N; i++){
         std::vector<int> idx = cell.getNeighbors(i-N/2.0,i-N/2.0,i-N/2.0);
@@ -30,8 +30,6 @@ int main(){
         std::cout << std::endl;
     }
 //    cell.buildList(s);
-    
-
     return 0;
 }
 
