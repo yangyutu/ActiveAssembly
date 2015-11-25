@@ -11,15 +11,15 @@ AssignmentProblemSolver::~AssignmentProblemSolver()
 {
 }
 
-double AssignmentProblemSolver::Solve(vector<vector<double>>& DistMatrix,vector<int>& Assignment,TMethod Method)
+long AssignmentProblemSolver::Solve(vector<vector<long>>& DistMatrix,vector<int>& Assignment,TMethod Method)
 {
 	int N=DistMatrix.size(); // number of columns (tracks)
 	int M=DistMatrix[0].size(); // number of rows (measurements)
 
 	int *assignment		=new int[N];
-	double *distIn		=new double[N*M];
+	long *distIn		=new long[N*M];
 
-	double  cost;
+	long  cost;
 	// Fill matrix with random numbers
 	for(int i=0; i<N; i++)
 	{
@@ -51,14 +51,14 @@ double AssignmentProblemSolver::Solve(vector<vector<double>>& DistMatrix,vector<
 // --------------------------------------------------------------------------
 // Computes the optimal assignment (minimum overall costs) using Munkres algorithm.
 // --------------------------------------------------------------------------
-void AssignmentProblemSolver::assignmentoptimal(int *assignment, double *cost, double *distMatrixIn, int nOfRows, int nOfColumns)
+void AssignmentProblemSolver::assignmentoptimal(int *assignment, long *cost, long *distMatrixIn, int nOfRows, int nOfColumns)
 {
-	double *distMatrix;
-	double *distMatrixTemp;
-	double *distMatrixEnd;
-	double *columnEnd;
-	double  value;
-	double  minValue;
+	long *distMatrix;
+	long *distMatrixTemp;
+	long *distMatrixEnd;
+	long *columnEnd;
+	long  value;
+	long  minValue;
 
 	bool *coveredColumns;
 	bool *coveredRows;
@@ -84,7 +84,7 @@ void AssignmentProblemSolver::assignmentoptimal(int *assignment, double *cost, d
 	// Total elements number
 	nOfElements   = nOfRows * nOfColumns; 
 	// Memory allocation
-	distMatrix    = (double *)malloc(nOfElements * sizeof(double));
+	distMatrix    = (long *)malloc(nOfElements * sizeof(long));
 	// Pointer to last element
 	distMatrixEnd = distMatrix + nOfElements;
 
@@ -231,7 +231,7 @@ void AssignmentProblemSolver::buildassignmentvector(int *assignment, bool *starM
 // --------------------------------------------------------------------------
 //
 // --------------------------------------------------------------------------
-void AssignmentProblemSolver::computeassignmentcost(int *assignment, double *cost, double *distMatrix, int nOfRows)
+void AssignmentProblemSolver::computeassignmentcost(int *assignment, long *cost, long *distMatrix, int nOfRows)
 {
 	int row, col;
 	for(row=0; row<nOfRows; row++)
@@ -247,7 +247,7 @@ void AssignmentProblemSolver::computeassignmentcost(int *assignment, double *cos
 // --------------------------------------------------------------------------
 //
 // --------------------------------------------------------------------------
-void AssignmentProblemSolver::step2a(int *assignment, double *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
+void AssignmentProblemSolver::step2a(int *assignment, long *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
 {
 	bool *starMatrixTemp, *columnEnd;
 	int col;
@@ -272,7 +272,7 @@ void AssignmentProblemSolver::step2a(int *assignment, double *distMatrix, bool *
 // --------------------------------------------------------------------------
 //
 // --------------------------------------------------------------------------
-void AssignmentProblemSolver::step2b(int *assignment, double *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
+void AssignmentProblemSolver::step2b(int *assignment, long *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
 {
 	int col, nOfCoveredColumns;
 	/* count covered columns */
@@ -299,7 +299,7 @@ void AssignmentProblemSolver::step2b(int *assignment, double *distMatrix, bool *
 // --------------------------------------------------------------------------
 //
 // --------------------------------------------------------------------------
-void AssignmentProblemSolver::step3(int *assignment, double *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
+void AssignmentProblemSolver::step3(int *assignment, long *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
 {
 	bool zerosFound;
 	int row, col, starCol;
@@ -348,7 +348,7 @@ void AssignmentProblemSolver::step3(int *assignment, double *distMatrix, bool *s
 // --------------------------------------------------------------------------
 //
 // --------------------------------------------------------------------------
-void AssignmentProblemSolver::step4(int *assignment, double *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim, int row, int col)
+void AssignmentProblemSolver::step4(int *assignment, long *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim, int row, int col)
 {
 	int n, starRow, starCol, primeRow, primeCol;
 	int nOfElements = nOfRows*nOfColumns;
@@ -411,9 +411,9 @@ void AssignmentProblemSolver::step4(int *assignment, double *distMatrix, bool *s
 // --------------------------------------------------------------------------
 //
 // --------------------------------------------------------------------------
-void AssignmentProblemSolver::step5(int *assignment, double *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
+void AssignmentProblemSolver::step5(int *assignment, long *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, int nOfRows, int nOfColumns, int minDim)
 {
-	double h, value;
+	long h, value;
 	int row, col;
 	/* find smallest uncovered element h */
 	h = DBL_MAX;
@@ -464,15 +464,15 @@ void AssignmentProblemSolver::step5(int *assignment, double *distMatrix, bool *s
 // --------------------------------------------------------------------------
 // Computes a suboptimal solution. Good for cases without forbidden assignments.
 // --------------------------------------------------------------------------
-void AssignmentProblemSolver::assignmentsuboptimal2(int *assignment, double *cost, double *distMatrixIn, int nOfRows, int nOfColumns)
+void AssignmentProblemSolver::assignmentsuboptimal2(int *assignment, long *cost, long *distMatrixIn, int nOfRows, int nOfColumns)
 {
 	int n, row, col, tmpRow, tmpCol, nOfElements;
-	double value, minValue, *distMatrix;
+	long value, minValue, *distMatrix;
 
 
 	/* make working copy of distance Matrix */
 	nOfElements   = nOfRows * nOfColumns;
-	distMatrix    = (double *)malloc(nOfElements * sizeof(double));
+	distMatrix    = (long *)malloc(nOfElements * sizeof(long));
 	for(n=0; n<nOfElements; n++)
 	{
 		distMatrix[n] = distMatrixIn[n];
@@ -525,17 +525,17 @@ void AssignmentProblemSolver::assignmentsuboptimal2(int *assignment, double *cos
 // --------------------------------------------------------------------------
 // Computes a suboptimal solution. Good for cases with many forbidden assignments.
 // --------------------------------------------------------------------------
-void AssignmentProblemSolver::assignmentsuboptimal1(int *assignment, double *cost, double *distMatrixIn, int nOfRows, int nOfColumns)
+void AssignmentProblemSolver::assignmentsuboptimal1(int *assignment, long *cost, long *distMatrixIn, int nOfRows, int nOfColumns)
 {
 	bool infiniteValueFound, finiteValueFound, repeatSteps, allSinglyValidated, singleValidationFound;
 	int n, row, col, tmpRow, tmpCol, nOfElements;
 	int *nOfValidObservations, *nOfValidTracks;
-	double value, minValue, *distMatrix;
+	long value, minValue, *distMatrix;
 
 
 	/* make working copy of distance Matrix */
 	nOfElements   = nOfRows * nOfColumns;
-	distMatrix    = (double *)malloc(nOfElements * sizeof(double));
+	distMatrix    = (long *)malloc(nOfElements * sizeof(long));
 	for(n=0; n<nOfElements; n++)
 	{
 		distMatrix[n] = distMatrixIn[n];
@@ -767,13 +767,13 @@ int main(void)
 	// Random numbers generator initialization
 	srand (time(NULL));
 	// Distance matrix N-th track to M-th detect.
-	vector< vector<double> > Cost(N,vector<double>(M));
+	vector< vector<long> > Cost(N,vector<long>(M));
 	// Fill matrix with random values
 	for(int i=0; i<N; i++)
 	{
 		for(int j=0; j<M; j++)
 		{
-			Cost[i][j] = (double)(rand()%1000)/1000.0;
+			Cost[i][j] = (long)(rand()%1000)/1000.0;
 //			std::cout << Cost[i][j] << "\t";
 		}
 //		std::cout << std::endl;

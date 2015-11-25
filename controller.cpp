@@ -63,7 +63,7 @@ void Controller::calControl2d(Model::state s){
 
 
 double Controller::calAssignment3d(Model::state s) {
-    vector< vector<double> > Cost(numP, vector<double>(numP));
+    vector< vector<long> > Cost(numP, vector<long>(numP));
     double totalCost = 0.0;
     for(int i=0; i<numP; i++){
 	for(int j=0; j<numP; j++){
@@ -74,7 +74,7 @@ double Controller::calAssignment3d(Model::state s) {
             double proj_y = s[i]->ori_vec[0][1]*rx + s[i]->ori_vec[0][1]*ry+s[i]->ori_vec[0][1]*rz;
             double proj_z = s[i]->ori_vec[0][2]*rx + s[i]->ori_vec[0][2]*ry+s[i]->ori_vec[0][2]*rz;;
             double c = pow((proj_x - 2)/1.2,2.0) + pow((proj_y),2.0) + pow((proj_z),2.0);
-            Cost[i][j] = c;
+            Cost[i][j] = (long)(sqrt(c)*10.0);
         }
     }   
     AssignmentProblemSolver APS;
@@ -111,7 +111,7 @@ void Controller::calControl3d(Model::state s){
 
 
 double Controller::calAssignment2d(Model::state s) {
-    vector< vector<double> > Cost(numP, vector<double>(numP));
+    vector< vector<long> > Cost(numP, vector<long>(numP));
     double totalCost = 0.0;
     for(int i=0; i<numP; i++){
 	for(int j=0; j<numP; j++){
@@ -120,7 +120,7 @@ double Controller::calAssignment2d(Model::state s) {
             double proj_x = cos(s[i]->phi)*rx + sin(s[i]->phi)*ry;
             double proj_y = -sin(s[i]->phi)*rx + cos(s[i]->phi)*ry;
             double c = pow((proj_x - 2)/1.2,2.0) + pow((proj_y),2.0);
-            Cost[i][j] = c;
+            Cost[i][j] = (long)(sqrt(c)*10.0);
         }
     }   
     AssignmentProblemSolver APS;

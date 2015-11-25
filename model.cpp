@@ -12,9 +12,9 @@ Model::Model(int np, int dim0, double radius0, std::string filetag0,std::string 
     for(int i = 0; i < numP; i++){
         particles.push_back(particle_ptr(new Model::particle));    
     }
-    dt_ = 0.001;
+    dt_ = 0.0001;
     diffusivity_t = 2.145e-13;
-//    diffusivity_t = qe-18;
+
     diffusivity_r = 0.2145;
     mobility = diffusivity_t/kb/T;
     trajOutputInterval = 1000;
@@ -57,20 +57,19 @@ void Model::run() {
         for (int i = 0; i < numP; i++) {
 
             particles[i]->r[0] += mobility * particles[i]->F[0] * dt_ +
-                        velocity[particles[i]->u] * cos(particles[i]->phi) * dt_;
+                        velocity[particles[i]->u] * cos(particles[i]->phi) * dt_
                     +   sqrt(2.0 * diffusivity_t * dt_) * (*rand_normal)(rand_generator);
             particles[i]->r[1] += mobility * particles[i]->F[1] * dt_ +
-                        velocity[particles[i]->u] * sin(particles[i]->phi) * dt_; 
+                        velocity[particles[i]->u] * sin(particles[i]->phi) * dt_ 
                     +   sqrt(2.0 * diffusivity_t * dt_) * (*rand_normal)(rand_generator);
-
-
+        
             particles[i]->phi += sqrt(2.0 * diffusivity_r * dt_) * (*rand_normal)(rand_generator);
         }
     } else if(dimP == 3){
         for (int i = 0; i < numP; i++) {
             for(int j = 0; j < dimP; j++){
                 particles[i]->r[j] += mobility * particles[i]->F[j] * dt_ +
-                        velocity[particles[i]->u] * particles[i]->ori_vec[0][j]* dt_;
+                        velocity[particles[i]->u] * particles[i]->ori_vec[0][j]* dt_
                     +   sqrt(2.0 * diffusivity_t * dt_) * (*rand_normal)(rand_generator);
             }
         // update the orientation vector via spherical surface diffusion
@@ -94,6 +93,12 @@ void Model::run(int steps){
     }
 }
 
+void Model::setControl(int c){
+    for (int i = 0; i < numP; i++) {
+        particles[i]->u = c;
+    }
+
+}
 void Model::readTarget(std::string filename){
     std::ifstream is;
     is.open(filename);
@@ -152,8 +157,9 @@ void Model::calForces() {
             particles[i]->F[k] = 0.0;
         }
     }
-
+    
     if(!cellListFlag){
+    
     for (int i = 0; i < numP - 1; i++) {
         for (int j = i + 1; j < numP; j++) {
             calForcesHelper(i, j, F);
@@ -163,6 +169,15 @@ void Model::calForces() {
             }
         }
     }
+/*    
+    double testSum1 = 0.0;
+    double testSum2 = 0.0;
+        for (int i = 0; i < numP; i++) {
+            testSum1 += particles[i]->F[0];
+            testSum2 += particles[i]->F[1];
+        }
+    std::cout << testSum1 << "\t" << testSum2 << std::endl; 
+*/    
     } else{
         
         for (int i = 0; i < numP; i++) {

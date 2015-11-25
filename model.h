@@ -17,7 +17,7 @@ public:
         double r[3],F[3],ori_vec[3][3];
         double phi;
         double theta;
-        double u;
+        int u;
         int targetIdx;
         double cost;
     };
@@ -33,6 +33,7 @@ public:
     void createInitialState();
     state getCurrState(){return particles;}
     int getDimP(){return dimP;}
+    void setControl(int c);
     std::vector<Model::particle> getTargets(){return targets;}
     double dt(){return dt_;}
     int np(){return numP;}

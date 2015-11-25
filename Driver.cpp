@@ -6,11 +6,11 @@
 
 int main(){
 
-    int N = 2022;
-    int dim = 3;
+    int N = 79;
+    int dim = 2;
     double radius = 1e-6;
-    cellList_ptr cell(new CellList(3.0*radius,2,10,300.0*radius,300.0*radius,300.0*radius));
-    std::shared_ptr<Model> m(new Model(N,dim,radius,"control","config3d.txt" ,"toporing_big.txt",cell));
+    cellList_ptr cell(new CellList(3.0*radius,3,20,300.0*radius,300.0*radius,300.0*radius));
+    std::shared_ptr<Model> m(new Model(N,dim,radius,"control","config2d.txt" ,"triangle_79p.txt",nullptr));
     std::shared_ptr<Controller> c(new Controller(N,dim, radius, m->getTargets()));
     Simulator simulator(m,c);
     simulator.run();  

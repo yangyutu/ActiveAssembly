@@ -7,7 +7,7 @@ Simulator::Simulator(std::shared_ptr<Model> model0,std::shared_ptr<Controller> c
     controlFrequency = 1000;
     assignmentFrequency = 10;
     nstep_control = 1000;
-    nstep_equilibrate = 1000;
+    nstep_equilibrate = 0;
 }
 
 void Simulator::run(){
@@ -25,7 +25,7 @@ void Simulator::run(){
         controller->calControl(model->getCurrState(),model->getDimP());        
         model->run(controlFrequency);
     }
-    
+    model->setControl(0);
     for(int s = 0; s < nstep_equilibrate; s++){
         model->run(controlFrequency);
     }
